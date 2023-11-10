@@ -14,13 +14,31 @@ import {
 import User, { IUser } from '../entities/users';
 import { TYPE } from '../constants/types';
 import { ModelClass } from 'objection';
+import { ApiOperationGet, ApiPath, SwaggerDefinitionConstant } from 'swagger-express-ts';
 
+@ApiPath({
+  path: "/users",
+  name: "User",
+  security: { basicAuth: [] }
+})
 @controller('/api/v1/users')
 export class UserController implements interfaces.Controller {
   public _userRepo: User
   public constructor(@inject(TYPE.UserModel) userRepo: User) {
     this._userRepo = userRepo
   }
+
+
+  @ApiOperationGet({
+    description: "Get versions objects list",
+    summary: "Get versions list",
+    responses: {
+        200: { description: "Success", type: SwaggerDefinitionConstant.Response.Type.ARRAY, model: "user" }
+    },
+    security: {
+        apiKeyHeader: []
+    }
+})
   @httpGet('/')
   public async get(@response() res: express.Response) {
     try {

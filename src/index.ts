@@ -28,6 +28,11 @@ dotenv.config();
   await container.loadAsync(bindings);
   const app = new InversifyExpressServer(container);
   app.setConfig((app) => {
+    app.use('/', (_req: express.Request, res: express.Response)=>{
+      res.status(200).json({
+        message: 'Bridge API'
+      })
+    })
     app.use('/docs/swagger', express.static('./docs/swagger'));
     app.use(
       '/docs/swagger/assets',

@@ -55,14 +55,20 @@ export class BidController implements interfaces.Controller {
     const { bid_id } = req.body;
     try {
       let bid = await Bid.query().findById(bid_id);
+      
       if (!bid) {
         throw new Error('Invalid bid');
       }
+
+      let advert = await Advert.query().findById(bid.advert_id);
+
+      if (!advert) {
+        throw new Error('Invalid b');
+      }
       await createTransactionForWallet(
-        'Bid',
-        'Debit',
         String(bid.amount),
         bid.user_id,
+        advert.user_id,
         'Payment for bid',
         'Payment for bid'
       );

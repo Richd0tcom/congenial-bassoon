@@ -8,8 +8,8 @@
     "dev": "NODE_ENV=development  ts-node-dev --respawn --transpile-only src/index.ts",
     "start": "node build/index.js",
     "postinstall": "tsc",
-    "migrateup": "npx knex migrate:latest --knexfile \"./src/db/*.{ts,js}\"",
-    "migratedown": "npx knex migrate:rollback --all --knexfile \"./src/db/*.{ts,js}\"",
+    "migrateup": "NODE_ENV=production npx knex migrate:latest --knexfile \"./src/db/*.{ts,js}\"",
+    "migratedown": "NODE_ENV=production npx knex migrate:rollback --all --knexfile \"./src/db/*.{ts,js}\"",
     "makemigrate": "npx knex  migrate:make migration_name -x ts  --knexfile \"./src/db/*.{ts,js}\""
   },
   "dependencies": {

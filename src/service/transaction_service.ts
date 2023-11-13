@@ -5,11 +5,10 @@ import User from '../entities/users';
 const transaction_types = ['Deposit', 'Transfer', 'Withdraw'];
 const transaction_actions = ['Credit', 'Debit'];
 
-export const createTransactionForWallet = async (
-  transaction_type: string,
-  transaction_action: string,
+export const createTransactionForBid = async (
   amount: string | number,
-  user_id: string,
+  from_user_id: string,
+  to_user_id: string,
   description: string,
   reason: string
 ) => {
@@ -17,59 +16,87 @@ export const createTransactionForWallet = async (
     if (isNaN(Number(amount))) {
       throw new Error('Invalid amount');
     }
-    const user = await User.query()
-      .findById(user_id)
+    const from_user = await User.query()
+      .findById(from_user_id)
       .catch((e) => {
         console.log(e);
       });
 
-    if (!user) {
+    const to_user = await User.query()
+      .findById(to_user_id)
+      .catch((e) => {
+        console.log(e);
+      });
+
+    if (!from_user) {
       throw new Error('user not found for transaction');
     }
-    let wallet_balance = Number(user.wallet_balance);
-
-    switch (transaction_action) {
-      case 'Debit':
-        if (Number(amount) > wallet_balance) {
-          throw new Error('Insufficient Wallet Funds');
-        }
-        wallet_balance -= Number(amount);
-        break;
-      case 'Credit':
-        wallet_balance += Number(amount);
-        break;
-      default:
-        throw new Error('Invalid Transaction Action');
+    if (!to_user) {
+      throw new Error('user not found for transaction');
     }
-    const [transaction_data, user_data] = await Promise.all([
-      Transaction.query()
-        .insert({
-          amount,
-          user_id: user.id,
-          transaction_type,
-          transaction_action,
-          transaction_status: 'Success',
-          description,
-          reason,
-        })
-        .catch((e) => {
-          console.log(e);
-          throw new Error('Invalid Transaction body');
-        }),
+    let from_wallet_balance = Number(from_user.wallet_balance);
+    let to_wallet_balance = Number(to_user.wallet_balance);
 
-      User.query()
-        .patchAndFetchById(user.id, {
-          wallet_balance: wallet_balance.toString(),
-        })
-        .catch((e) => {
-          console.log(e);
-          throw new Error('Invalid User body');
-        }),
-    ]);
+    if (Number(amount) > from_wallet_balance) {
+      throw new Error('Insufficient Wallet Funds');
+    }
+    from_wallet_balance -= Number(amount);
+    to_wallet_balance += Number(amount);
+
+    const [transaction_data1, transaction_data2, user_data1, user_data2] =
+      await Promise.all([
+        Transaction.query()
+          .insert({
+            amount,
+            user_id: from_user.id,
+            transaction_type: transaction_types[2],
+            transaction_action: transaction_actions[1],
+            transaction_status: 'Success',
+            description,
+            reason,
+          })
+          .catch((e) => {
+            console.log(e);
+            throw new Error('Invalid Transaction body');
+          }),
+        Transaction.query()
+          .insert({
+            amount,
+            user_id: to_user.id,
+            transaction_type: transaction_types[0],
+            transaction_action: transaction_actions[0],
+            transaction_status: 'Success',
+            description,
+            reason,
+          })
+          .catch((e) => {
+            console.log(e);
+            throw new Error('Invalid Transaction body');
+          }),
+
+        User.query()
+          .patchAndFetchById(from_user.id, {
+            wallet_balance: from_wallet_balance.toString(),
+          })
+          .catch((e) => {
+            console.log(e);
+            throw new Error('Invalid User body');
+          }),
+        User.query()
+          .patchAndFetchById(to_user.id, {
+            wallet_balance: to_wallet_balance.toString(),
+          })
+          .catch((e) => {
+            console.log(e);
+            throw new Error('Invalid User body');
+          }),
+      ]);
 
     return {
-      transaction_data,
-      user_data,
+      transaction_data1,
+      transaction_data2,
+      user_data1,
+      user_data2,
     };
   });
 };

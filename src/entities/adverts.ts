@@ -9,6 +9,7 @@ import {
   import { ILocation, Role } from '../constants/interfaces';
   import { DBErrors } from 'objection-db-errors';
   import visibility from 'objection-visibility';
+import Bid from './bids';
   
   class Advert extends mixins(Model) {
     // [x: string]: any;
@@ -32,7 +33,16 @@ import {
     // static query(...args: any) {
     //     return super.query(...args).throwIfNotFound();
     //   }
-    static relationMappings: RelationMappings | RelationMappingsThunk = {};
+    static relationMappings: RelationMappings | RelationMappingsThunk = {
+      bids: {
+        relation: Model.HasManyRelation,
+        modelClass: Bid,
+        join: {
+          from: 'adverts.id',
+          to: 'bid.advert_id'
+        }
+    }
+    };
   }
   
   // export type UserT = ModelObject<User>

@@ -18,7 +18,7 @@ import { ModelClass } from 'objection';
 import Advert from '../entities/adverts';
 import Bid from '../entities/bids';
 import { BidStatus } from '../constants/interfaces';
-import { createTransactionForWallet } from '../service/transaction_service';
+import { createTransactionForBid } from '../service/transaction_service';
 
 @controller('/api/v1/bids')
 export class BidController implements interfaces.Controller {
@@ -65,7 +65,7 @@ export class BidController implements interfaces.Controller {
       if (!advert) {
         throw new Error('Invalid b');
       }
-      await createTransactionForWallet(
+      await createTransactionForBid(
         String(bid.amount),
         bid.user_id,
         advert.user_id,
